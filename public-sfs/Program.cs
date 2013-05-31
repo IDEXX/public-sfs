@@ -11,8 +11,9 @@ namespace public_sfs
     class Program
     {
         public static string emrApiKey = "test";
-        public static string clinicApiKey = "f437b9690ceb246e294c68de40d473642a710c1e";
+        public static string clinicApiKey = "test";
         public static string serverUrl = "https://sfs-public.azurewebsites.net/api/v2";
+
         static void Main(string[] args)
         {
             Hospitalization hosp = GenerateHospitalization();
@@ -37,6 +38,8 @@ namespace public_sfs
             hosp.externalId = "myDbId";
             hosp.finished = false;
             hosp.isMetricUnitSystem = true;
+            hosp.estimatedDaysOfStay = 1;
+            hosp.weight = ((Double)2.5).ToString();
 
             var patient = new Patient();
             patient.birthday = DateTime.Now.AddYears(-2);

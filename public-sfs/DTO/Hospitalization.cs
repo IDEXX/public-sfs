@@ -13,7 +13,7 @@ namespace smartflowsheet.PublicApi
         public Guid hospitalizationID { get; set; }
         public DateTime dateCreated { get; set; }
         public bool finished { get; set; }
-        public Guid treatmentTemplateID { get; set; }
+        public string treatmentTemplateName { get; set; }
         public bool isMetricUnitSystem { get; set; }
         public string weight { get; set; }
         public int estimatedDaysOfStay { get; set; }
