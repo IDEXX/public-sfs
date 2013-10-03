@@ -11,10 +11,6 @@ namespace smartflowsheet.PublicApi
     public class Patient
     {
         public Guid patientID { get; set; }
-        /// <summary>
-        /// Use externalId to associate the entity with your internal id
-        /// </summary>
-        public string externalID { get; set; }
         public string name { get; set; }
         public string customField { get; set; }
         public DateTime birthday { get; set; }
@@ -23,5 +19,9 @@ namespace smartflowsheet.PublicApi
         public string color { get; set; }
         public string sex { get; set; }
         public string breed { get; set; }
+        /// <summary>
+        /// Use externalId to associate the entity with your internal id
+        /// </summary>
+        public string externalID { get; set; }
     }
 }

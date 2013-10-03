@@ -10,19 +10,41 @@ namespace public_sfs
 {
     class Program
     {
-        public static string emrApiKey = "test";
-        public static string clinicApiKey = "test";
+        /// <summary>
+        /// Base server url:
+        ///     - sandbox :     "https://sfs-public.azurewebsites.net/api/v2"; 
+        ///     - production:   "https://www.smartflowsheet.com/api/v2"
+        /// </summary>
         public static string serverUrl = "https://sfs-public.azurewebsites.net/api/v2";
+
+        /// <summary>
+        /// Each EMR has special developer key received from Smart Flow Sheet support
+        /// </summary>
+        public static string emrApiKey = "emrApiKey"; 
+        
+        /// <summary>
+        /// Each clinic has a special key to be used for integration with EMR. 
+        /// This key is generated after clinic registration and available at 
+        /// account page (https://www.smartflowsheet.com/Account/Info)
+        /// </summary>
+        public static string clinicApiKey = "clinicApiKey"; // each clinic has
 
         static void Main(string[] args)
         {
-            Hospitalization hosp = GenerateHospitalization();
+            // Build HTTP headers with auth info
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
+            
+            // Create dto with hospitalization information
+            Hospitalization hosp = GenerateHospitalization();
+
+            // Send to server and receive response
             var url = serverUrl + "/sfshospitalizations";
             Console.WriteLine("Making a web request to " + url);
             var result = httpClient.PostAsJsonAsync<Hospitalization>(url, hosp).Result;
+
+            // Output result
             Console.WriteLine("Http result code: {0}", result.StatusCode);
             Console.WriteLine("Http content:");
             Console.WriteLine(result.Content.ReadAsStringAsync().Result);
