@@ -15,7 +15,7 @@ namespace smartflowsheet.PublicApi
         public bool finished { get; set; }
         public string treatmentTemplateName { get; set; }
         public bool isMetricUnitSystem { get; set; }
-        public string weight { get; set; }
+        public double weight { get; set; }
         public int estimatedDaysOfStay { get; set; }
         public ICollection<string> diseases { get; set; }
         public Patient patient { get; set; }

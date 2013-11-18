@@ -36,32 +36,23 @@ namespace public_sfs
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
             
-            // Create dto with hospitalization information
-            Hospitalization hosp = GenerateHospitalization();
-
-            // Send to server and receive response
-            var url = serverUrl + "/sfshospitalizations";
-            Console.WriteLine("Making a web request to " + url);
-            var result = httpClient.PostAsJsonAsync<Hospitalization>(url, hosp).Result;
-
-            // Output result
-            Console.WriteLine("Http result code: {0}", result.StatusCode);
-            Console.WriteLine("Http content:");
-            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
-            Console.WriteLine("\n\nPress any key to exit...");
-            Console.ReadKey();
+            // Create hospitalization on server
+            Hospitalization hosp = CreateHospitalization(httpClient);
+            // Update hospitalization (add 1 more disease) on server
+            UpdateHospitalization(httpClient, hosp);
         }
 
-        public static Hospitalization GenerateHospitalization()
+        public static Hospitalization CreateHospitalization(HttpClient httpClient)
         {
+            // Create dto with hospitalization information
             var hosp = new Hospitalization();
             hosp.dateCreated = DateTime.Now;
             hosp.diseases = new List<string>() { "high temperature", "vomiting" };
-            hosp.externalId = "myDbId";
+            hosp.externalId = "myDbId_001";
             hosp.finished = false;
             hosp.isMetricUnitSystem = true;
             hosp.estimatedDaysOfStay = 1;
-            hosp.weight = ((Double)2.5).ToString();
+            hosp.weight = 4.7;
 
             var patient = new Patient();
             patient.birthday = DateTime.Now.AddYears(-2);
@@ -81,7 +72,34 @@ namespace public_sfs
             patient.owner = owner;
             hosp.patient = patient;
 
-            return hosp;
+            // Send to server and receive response
+            var url = serverUrl + "/sfshospitalizations";
+            Console.WriteLine("Making a create web request to " + url);
+            var result = httpClient.PostAsJsonAsync<Hospitalization>(url, hosp).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to update this hospitalization...");
+            Console.ReadKey();
+
+            return result.Content.ReadAsAsync<Hospitalization>().Result;
+        }
+
+        public static void UpdateHospitalization(HttpClient httpClient, Hospitalization hosp)
+        {
+            hosp.diseases.Add("Diarrhea");
+
+            var url = serverUrl + "/sfshospitalizations";
+            Console.WriteLine("Making an update web request to " + url);
+            var result = httpClient.PutAsJsonAsync<Hospitalization>(url, hosp).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to exit...");
         }
     }
 }
