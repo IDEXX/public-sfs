@@ -1,10 +1,12 @@
-﻿using smartflowsheet.PublicApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+
+using smartflowsheet.api.model.inventory;
+using smartflowsheet.api.model.patient;
 
 namespace public_sfs
 {
@@ -12,10 +14,10 @@ namespace public_sfs
     {
         /// <summary>
         /// Base server url:
-        ///     - sandbox :     "https://sfs-public.azurewebsites.net/api/v2"; 
-        ///     - production:   "https://www.smartflowsheet.com/api/v2"
+        ///     - sandbox :     "https://sfs-public.azurewebsites.net/api/v3"; 
+        ///     - production:   "https://www.smartflowsheet.com/api/v3"
         /// </summary>
-        public static string serverUrl = "https://sfs-public.azurewebsites.net/api/v2";
+        public static string serverUrl = "https://sfs-public.azurewebsites.net/api/v3";
 
         /// <summary>
         /// Each EMR has special developer key received from Smart Flow Sheet support
@@ -27,7 +29,7 @@ namespace public_sfs
         /// This key is generated after clinic registration and available at 
         /// account page (https://www.smartflowsheet.com/Account/Info)
         /// </summary>
-        public static string clinicApiKey = "clinicApiKey"; // each clinic has
+        public static string clinicApiKey = "clinicApiKey";
 
         static void Main(string[] args)
         {
@@ -36,10 +38,34 @@ namespace public_sfs
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
             
+            // Create inventory item
+            CreateInventoryItem(httpClient);
             // Create hospitalization on server
             Hospitalization hosp = CreateHospitalization(httpClient);
             // Update hospitalization (add 1 more disease) on server
             UpdateHospitalization(httpClient, hosp);
+        }
+
+        public static void CreateInventoryItem(HttpClient httpClient)
+        {
+            InventoryItem item = new InventoryItem()
+            {
+                Id = "emrIdm3",
+                Name = "Cefazolin",
+                Concentration = 100,
+                ConcentrationMeasure = "mg",
+                ConcentrationVolume = "ml"
+            };
+            var url = serverUrl + "/inventoryitem";
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.PostAsJsonAsync<InventoryItem>(url, item).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to proceed...");
+            Console.ReadKey();
         }
 
         public static Hospitalization CreateHospitalization(HttpClient httpClient)
@@ -48,8 +74,7 @@ namespace public_sfs
             var hosp = new Hospitalization();
             hosp.dateCreated = DateTime.Now;
             hosp.diseases = new List<string>() { "high temperature", "vomiting" };
-            hosp.externalId = "myDbId_001";
-            hosp.finished = false;
+            hosp.externalID = "myDbId_001";
             hosp.isMetricUnitSystem = true;
             hosp.estimatedDaysOfStay = 1;
             hosp.weight = 4.7;
@@ -59,7 +84,7 @@ namespace public_sfs
             patient.breed = "Hound";
             patient.color = "Brown";
             patient.externalID = "myPatientId";
-            patient.name = "Rocky";
+            patient.name = "Jersy";
             patient.sex = "M";
             patient.species = "Dog";
 
@@ -73,8 +98,8 @@ namespace public_sfs
             hosp.patient = patient;
 
             // Send to server and receive response
-            var url = serverUrl + "/sfshospitalizations";
-            Console.WriteLine("Making a create web request to " + url);
+            var url = serverUrl + "/hospitalization";
+            Console.WriteLine("Making web request to " + url);
             var result = httpClient.PostAsJsonAsync<Hospitalization>(url, hosp).Result;
 
             // Output result
@@ -91,8 +116,8 @@ namespace public_sfs
         {
             hosp.diseases.Add("Diarrhea");
 
-            var url = serverUrl + "/sfshospitalizations";
-            Console.WriteLine("Making an update web request to " + url);
+            var url = serverUrl + "/hospitalization";
+            Console.WriteLine("Making web request to " + url);
             var result = httpClient.PutAsJsonAsync<Hospitalization>(url, hosp).Result;
 
             // Output result
