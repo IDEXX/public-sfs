@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using smartflowsheet.api.model.inventory;
-using smartflowsheet.api.model.patient;
+using smartflowsheet.api.model.objects;
+using smartflowsheet.api.model.events;
 
 namespace public_sfs
 {
@@ -22,8 +23,8 @@ namespace public_sfs
         /// <summary>
         /// Each EMR has special developer key received from Smart Flow Sheet support
         /// </summary>
-        public static string emrApiKey = "emrApiKey"; 
-        
+        public static string emrApiKey = "emrApiKey";
+
         /// <summary>
         /// Each clinic has a special key to be used for integration with EMR. 
         /// This key is generated after clinic registration and available at 
@@ -38,29 +39,36 @@ namespace public_sfs
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
             
-            // Create inventory item
+            // Sample 1. Create inventory item
             CreateInventoryItem(httpClient);
-            // Create hospitalization on server
+
+            // Sample 2. Create hospitalization 
             Hospitalization hosp = CreateHospitalization(httpClient);
-            // Update hospitalization (add 1 more disease) on server
+
+            // Sample 3. Update hospitalization
             UpdateHospitalization(httpClient, hosp);
+
+            // Sample 4. Download medical records report for the patient
+            DownloadMedicalRecordsReport(httpClient, hosp);
         }
 
         public static void CreateInventoryItem(HttpClient httpClient)
         {
             InventoryItem item = new InventoryItem()
             {
-                Id = "emrIdm3",
+                Id = "emrId_Cefazolin",
                 Name = "Cefazolin",
                 Concentration = 100,
                 ConcentrationMeasure = "mg",
                 ConcentrationVolume = "ml"
             };
+
             var url = serverUrl + "/inventoryitem";
             Console.WriteLine("Making web request to " + url);
             var result = httpClient.PostAsJsonAsync<InventoryItem>(url, item).Result;
 
             // Output result
+            
             Console.WriteLine("Http result code: {0}", result.StatusCode);
             Console.WriteLine("Http content:");
             Console.WriteLine(result.Content.ReadAsStringAsync().Result);
@@ -70,28 +78,28 @@ namespace public_sfs
 
         public static Hospitalization CreateHospitalization(HttpClient httpClient)
         {
-            // Create dto with hospitalization information
+            // Create hospitalization 
             var hosp = new Hospitalization();
             hosp.dateCreated = DateTime.Now;
-            hosp.diseases = new List<string>() { "high temperature", "vomiting" };
-            hosp.externalID = "myDbId_001";
-            hosp.isMetricUnitSystem = true;
+            hosp.externalID = "myDbId1001";
             hosp.estimatedDaysOfStay = 1;
-            hosp.weight = 4.7;
+            hosp.weightUnits = "kg";
+            hosp.weight = 5.8;
+            hosp.diseases = new List<string>() { "high temperature", "vomiting" };
 
             var patient = new Patient();
             patient.birthday = DateTime.Now.AddYears(-2);
             patient.breed = "Hound";
             patient.color = "Brown";
-            patient.externalID = "myPatientId";
-            patient.name = "Jersy";
+            patient.externalID = "myPatientId1002";
+            patient.name = "Jordi";
+            patient.species = "Canin";
             patient.sex = "M";
-            patient.species = "Dog";
 
             var owner = new Client();
-            owner.externalID = "myClientId";
-            owner.nameFirst = "John";
-            owner.nameLast = "Doe";
+            owner.externalID = "myClientId1003";
+            owner.nameFirst = "Jack";
+            owner.nameLast = "Dow";
             owner.workPhone = "555-55-55";
 
             patient.owner = owner;
@@ -114,7 +122,14 @@ namespace public_sfs
 
         public static void UpdateHospitalization(HttpClient httpClient, Hospitalization hosp)
         {
-            hosp.diseases.Add("Diarrhea");
+            // Add disease, and set custom field for the patient.
+            // Fields that should not be updated, must be nullified. 
+            // If you want to reset some text fields then pass empty string ""
+            hosp.diseases.Add("diarrhea");
+            hosp.patient.species = null;                // species will not be updated
+            hosp.patient.owner = null;                  // owner will not be updated
+            hosp.patient.customField = "CS 123";        // new value for customField
+            hosp.patient.color = "";                    // reset color
 
             var url = serverUrl + "/hospitalization";
             Console.WriteLine("Making web request to " + url);
@@ -124,7 +139,27 @@ namespace public_sfs
             Console.WriteLine("Http result code: {0}", result.StatusCode);
             Console.WriteLine("Http content:");
             Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
+        public static void DownloadMedicalRecordsReport(HttpClient httpClient, Hospitalization hosp)
+        {
+            // To download the report we must specify the time zone,
+            // in which we want all dates to appear. 
+            // http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            httpClient.DefaultRequestHeaders.Add("timezoneName", "Europe/Helsinki");
+
+            var url = serverUrl + "/hospitalization/" + hosp.externalID + "/medicalrecordsreport";
+            Console.WriteLine("Start downloading medical records report...");
+            Stream pdfStream = httpClient.GetStreamAsync(url).Result;
+            using (var fileStream = File.Create("report.pdf"))
+            {
+                pdfStream.CopyTo(fileStream);
+            }
+            Console.WriteLine("File downloaded. You can find it in the /bin/{Configuration}/ folder");
             Console.WriteLine("\n\nPress any key to exit...");
+            Console.ReadKey();
         }
     }
 }
