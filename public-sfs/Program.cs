@@ -38,18 +38,21 @@ namespace public_sfs
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
-            
-            // Sample 1. Create inventory item
-            CreateInventoryItem(httpClient);
 
-            // Sample 2. Create hospitalization 
-            Hospitalization hosp = CreateHospitalization(httpClient);
+            // Sample 1. Create inventory item and upload medics
+            //CreateInventoryItem(httpClient);
 
-            // Sample 3. Update hospitalization
-            UpdateHospitalization(httpClient, hosp);
+            // Sample 2. Upload doctors
+            //UploadMedics(httpClient);
 
-            // Sample 4. Download medical records report for the patient
-            DownloadMedicalRecordsReport(httpClient, hosp);
+            // Sample 3. Create hospitalization 
+            //Hospitalization hosp = CreateHospitalization(httpClient);
+
+            // Sample 4. Update hospitalization
+            //UpdateHospitalization(httpClient, hosp);
+
+            // Sample 5. Download medical records report for the patient
+            //DownloadMedicalRecordsReport(httpClient, null);
         }
 
         public static void CreateInventoryItem(HttpClient httpClient)
@@ -68,7 +71,37 @@ namespace public_sfs
             var result = httpClient.PostAsJsonAsync<InventoryItem>(url, item).Result;
 
             // Output result
-            
+
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to proceed...");
+            Console.ReadKey();
+        }
+
+        public static void UploadMedics(HttpClient httpClient)
+        {
+            var medics = new Medics()
+            {
+                Id = "some-id",
+                Objects = new List<Medic>()
+            };
+            ((List<Medic>)medics.Objects).Add(new Medic()
+            {
+                ExternalID = "emrIdm3",
+                Name = "Ivan",
+                MedicType = "doctor"
+            });
+            ((List<Medic>)medics.Objects).Add(new Medic()
+            {
+                ExternalID = "emrIdm4",
+                Name = "Dr. George",
+                MedicType = "doctor"
+            });
+            var url = serverUrl + "/medics";
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.PostAsJsonAsync<Medics>(url, medics).Result;
+
             Console.WriteLine("Http result code: {0}", result.StatusCode);
             Console.WriteLine("Http content:");
             Console.WriteLine(result.Content.ReadAsStringAsync().Result);
