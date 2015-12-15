@@ -39,27 +39,51 @@ namespace public_sfs
             httpClient.DefaultRequestHeaders.Add("emrApiKey", emrApiKey);
             httpClient.DefaultRequestHeaders.Add("clinicApiKey", clinicApiKey);
 
-            // Sample 1. Create inventory item and upload medics
-            //CreateInventoryItem(httpClient);
+            // Please always provide "timezoneName" header. 
+            // To download reports we must specify the time zone,
+            // in which we want all dates to appear. 
+            // http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            httpClient.DefaultRequestHeaders.Add("timezoneName", "Europe/Helsinki");
 
-            // Sample 2. Upload doctors
-            //UploadMedics(httpClient);
+            // Sample 1. Create inventory item ( http://veterinarium.github.io/#create-or-update-single-inventory-item )
+            // CreateInventoryItem(httpClient, "emrId_Cefazolin");
 
-            // Sample 3. Create hospitalization 
-            //Hospitalization hosp = CreateHospitalization(httpClient);
+            // Sample 1a. Delete inventory item  ( http://veterinarium.github.io/#delete-single-inventory-item )
+            // DeleteInventoryItem(httpClient, "emrId_Cefazolin");
+
+            // Sample 2. Upload doctors ( http://veterinarium.github.io/#create-or-update-multiple-medics )
+            // UploadMedics(httpClient);
+
+            // Sample 3. Create hospitalization ( http://veterinarium.github.io/#create-a-patient ) 
+            // Hospitalization hosp = CreateHospitalization(httpClient,  "someExternalId");
 
             // Sample 4. Update hospitalization
-            //UpdateHospitalization(httpClient, hosp);
+            // UpdateHospitalization(httpClient, hosp);
 
-            // Sample 5. Download medical records report for the patient
-            //DownloadMedicalRecordsReport(httpClient, null);
+            // Sample 5. Download medical records report for the patient ( http://veterinarium.github.io/#download-the-medical-records-report )
+            // DownloadMedicalRecordsReport(httpClient, hosp);
+
+            // Sample 6. Get hospitalization ( http://veterinarium.github.io/#get-hospitalization )
+            // GetHospitalization(httpClient, "someExternalId");
+
+            // Sample 7. Discharge hospitalization 
+            // DischargeHospitalization(httpClient, "someExternalId");
+
+            // Sample 8. Get treatment templates ( http://veterinarium.github.io/#retreive-active-treatment-templates ) 
+            // GetTreatmentTemplates(httpClient);
+
+            // Sample 9. Get departments ( http://veterinarium.github.io/#retreive-existing-departments ) 
+            // GetDepartments(httpClient);
+
+            // Sample 9. Get anesthetics ( http://veterinarium.github.io/#retreive-anesthetic-sheet-reports ) 
+            // GetAnesthetics(httpClient, "someExternalId");
         }
 
-        public static void CreateInventoryItem(HttpClient httpClient)
+        public static void CreateInventoryItem(HttpClient httpClient, string emrInventoryItemId)
         {
             InventoryItem item = new InventoryItem()
             {
-                Id = "emrId_Cefazolin",
+                Id = emrInventoryItemId,
                 Name = "Cefazolin",
                 Concentration = 100,
                 ConcentrationMeasure = "mg",
@@ -69,6 +93,21 @@ namespace public_sfs
             var url = serverUrl + "/inventoryitem";
             Console.WriteLine("Making web request to " + url);
             var result = httpClient.PostAsJsonAsync<InventoryItem>(url, item).Result;
+
+            // Output result
+
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to proceed...");
+            Console.ReadKey();
+        }
+
+        public static void DeleteInventoryItem(HttpClient httpClient, string emrInventoryItemId)
+        {
+            var url = serverUrl + "/inventoryitem/" + emrInventoryItemId;
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.DeleteAsync(url).Result;
 
             // Output result
 
@@ -109,16 +148,22 @@ namespace public_sfs
             Console.ReadKey();
         }
 
-        public static Hospitalization CreateHospitalization(HttpClient httpClient)
+        public static Hospitalization CreateHospitalization(HttpClient httpClient, string hospitalizationExternalId)
         {
             // Create hospitalization 
             var hosp = new Hospitalization();
             hosp.dateCreated = DateTime.Now;
-            hosp.externalID = "myDbId1001";
+            hosp.externalID = hospitalizationExternalId;
             hosp.estimatedDaysOfStay = 1;
             hosp.weightUnits = "kg";
             hosp.weight = 5.8;
             hosp.diseases = new List<string>() { "high temperature", "vomiting" };
+            hosp.cageNumber = "#14";
+            hosp.color = "#ffb4c4";
+            hosp.dateMovedToDepartment = DateTime.Now;
+            hosp.cageNumber = "123";
+            hosp.departmentID = 0;
+            hosp.treatmentTemplateName = "Default Q6";
 
             var patient = new Patient();
             patient.birthday = DateTime.Now.AddYears(-2);
@@ -159,6 +204,8 @@ namespace public_sfs
             // Fields that should not be updated, must be nullified. 
             // If you want to reset some text fields then pass empty string ""
             hosp.diseases.Add("diarrhea");
+            hosp.color = "#d3b2f1";
+
             hosp.patient.species = null;                // species will not be updated
             hosp.patient.owner = null;                  // owner will not be updated
             hosp.patient.customField = "CS 123";        // new value for customField
@@ -176,13 +223,68 @@ namespace public_sfs
             Console.ReadKey();
         }
 
+        public static void GetHospitalization(HttpClient httpClient, string hospitalizationExternalId)
+        {
+            var url = serverUrl + "/hospitalization/" + hospitalizationExternalId;
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.GetAsync(url).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            string resultString = result.Content.ReadAsStringAsync().Result;
+            //File.WriteAllText("hospitalization.json", resultString);
+            Console.WriteLine(resultString);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
+        public static void DischargeHospitalization(HttpClient httpClient, string hospitalizationExternalId)
+        {
+            var url = serverUrl + "/hospitalization/discharge/" + hospitalizationExternalId;
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.PostAsync(url, null).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            string resultString = result.Content.ReadAsStringAsync().Result;
+            File.WriteAllText("hospitalization.json", resultString);
+            Console.WriteLine(resultString);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
+        public static void GetDepartments(HttpClient httpClient)
+        {
+            var url = serverUrl + "/departments/";
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.GetAsync(url).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
+        public static void GetTreatmentTemplates(HttpClient httpClient)
+        {
+            var url = serverUrl + "/treatmenttemplates/";
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.GetAsync(url).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            Console.WriteLine(result.Content.ReadAsStringAsync().Result);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
         public static void DownloadMedicalRecordsReport(HttpClient httpClient, Hospitalization hosp)
         {
-            // To download the report we must specify the time zone,
-            // in which we want all dates to appear. 
-            // http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            httpClient.DefaultRequestHeaders.Add("timezoneName", "Europe/Helsinki");
-
             var url = serverUrl + "/hospitalization/" + hosp.externalID + "/medicalrecordsreport";
             Console.WriteLine("Start downloading medical records report...");
             Stream pdfStream = httpClient.GetStreamAsync(url).Result;
@@ -192,6 +294,22 @@ namespace public_sfs
             }
             Console.WriteLine("File downloaded. You can find it in the /bin/{Configuration}/ folder");
             Console.WriteLine("\n\nPress any key to exit...");
+            Console.ReadKey();
+        }
+
+        public static void GetAnesthetics(HttpClient httpClient, string hospitalizationExternalId)
+        {
+            var url = serverUrl + "/hospitalization/" + hospitalizationExternalId + "/anesthetics";
+            Console.WriteLine("Making web request to " + url);
+            var result = httpClient.GetAsync(url).Result;
+
+            // Output result
+            Console.WriteLine("Http result code: {0}", result.StatusCode);
+            Console.WriteLine("Http content:");
+            string resultString = result.Content.ReadAsStringAsync().Result;
+            File.WriteAllText("anesthetics.json", resultString);
+            Console.WriteLine(resultString);
+            Console.WriteLine("\n\nPress any key to continue...");
             Console.ReadKey();
         }
     }
