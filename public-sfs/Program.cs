@@ -4,10 +4,10 @@ using System.Linq;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using smartflowsheet.api.model.objects;
-using smartflowsheet.api.model.events;
 
 namespace public_sfs
 {
@@ -31,6 +31,19 @@ namespace public_sfs
         /// account page (https://www.smartflowsheet.com/Account/Info)
         /// </summary>
         public static string clinicApiKey = "clinicApiKey";
+
+        /// <summary>
+        /// Each clinic has special connection string which used for receive clinic's events via Azure Service Bus.
+        /// This connection string received from Smart Flow Sheet support
+        /// </summary>
+        public static string sbConnectionString = "serviceBusConnectionString";
+
+        /// <summary>
+        /// Each clinic has special queue name which used for receive clinic's events via Azure Service Bus.
+        /// Queue name received from Smart Flow Sheet support (usually it's equal to clinicApiKey).
+        /// </summary>
+        public static string sbQueueName = "queueName";
+
 
         static void Main(string[] args)
         {
@@ -77,6 +90,9 @@ namespace public_sfs
 
             // Sample 9. Get anesthetics ( http://veterinarium.github.io/#retreive-anesthetic-sheet-reports ) 
             // GetAnesthetics(httpClient, "someExternalId");
+
+            // Sample 10. Get EMR events from Azure Service Bus
+            // GetEventsFromServiceBus();
         }
 
         public static void CreateInventoryItem(HttpClient httpClient, string emrInventoryItemId)
@@ -309,6 +325,21 @@ namespace public_sfs
             string resultString = result.Content.ReadAsStringAsync().Result;
             File.WriteAllText("anesthetics.json", resultString);
             Console.WriteLine(resultString);
+            Console.WriteLine("\n\nPress any key to continue...");
+            Console.ReadKey();
+        }
+
+        public static void GetEventsFromServiceBus()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                Queue.BeginProcessingMessages(sbConnectionString, sbQueueName);
+            });
+
+            // NOTE: Thread.Sleep used only for demo purposes
+            Thread.Sleep(TimeSpan.FromSeconds(100));
+            Queue.EndProcessingMessages();
+
             Console.WriteLine("\n\nPress any key to continue...");
             Console.ReadKey();
         }
