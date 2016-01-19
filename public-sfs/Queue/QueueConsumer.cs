@@ -41,6 +41,22 @@ namespace public_sfs
                     }
                     break;
 
+                case EventTypes.MedicsImported:
+                    Medics medics = message.Object as Medics;
+                    foreach(Medic m in medics.Objects)
+                    {
+                        processMedic(m);
+                    }
+                    break;
+
+                case EventTypes.InventoryItemsImported:
+                    InventoryItems inventoryItems = message.Object as InventoryItems;
+                    foreach(InventoryItem ii in inventoryItems.Objects)
+                    {
+                        processInventoryItem(ii);
+                    }
+                    break;
+
                 default:
                     throw new ApplicationException("Unsuppoted event type");
                     break;
@@ -55,6 +71,16 @@ namespace public_sfs
         private void processHospitalization(Hospitalization h)
         {
             Console.WriteLine(String.Format("Hospitalization: Patient.Name - {0}", h.patient.name));
+        }
+
+        private void processMedic(Medic m)
+        {
+            Console.WriteLine(String.Format("Medic.Name - {0}", m.Name));
+        }
+
+        private void processInventoryItem(InventoryItem ii)
+        {
+            Console.WriteLine(String.Format("InventoryItem.Name - {0}", ii.Name));
         }
     }
 }
