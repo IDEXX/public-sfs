@@ -42,7 +42,7 @@ namespace public_sfs
         /// Each clinic has special queue name which used for receive clinic's events via Azure Service Bus.
         /// Queue name received from Smart Flow Sheet support (usually it's equal to clinicApiKey).
         /// </summary>
-        public static string sbQueueName = "queueName";
+        public static string sbQueueName = sbConnectionString;
 
 
         static void Main(string[] args)
