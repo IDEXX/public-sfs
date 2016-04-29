@@ -57,10 +57,23 @@ namespace public_sfs
                     }
                     break;
 
+                case EventTypes.NotesEntered:
+                    Notes notes = message.Object as Notes;
+                    foreach(Note n in notes.Objects)
+                    {
+                        processNote(n);
+                    }
+                    break;
+
                 default:
                     throw new ApplicationException("Unsuppoted event type");
                     break;
             }
+        }
+
+        private void processNote(Note n)
+        {
+            Console.WriteLine(String.Format("Note: Id - {0}, Text - {1}, Status - {2}", n.NoteID.ToString(), n.Text, n.NoteStatus));
         }
 
         private void processTreatment(Treatment t)
