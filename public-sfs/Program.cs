@@ -180,6 +180,7 @@ namespace public_sfs
             hosp.cageNumber = "123";
             hosp.departmentID = 0;
             hosp.treatmentTemplateName = "Default Q6";
+            hosp.resuscitate = ResuscitateStatus.BLS;
 
             var patient = new Patient();
             patient.birthday = DateTime.Now.AddYears(-2);
