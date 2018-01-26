@@ -15,10 +15,10 @@ namespace public_sfs
     {
         /// <summary>
         /// Base server url:
-        ///     - sandbox :     "https://sfs-public.azurewebsites.net/api/v3"; 
+        ///     - sandbox :     "https://sandbox.smartflowsheet.com/api/v3"; 
         ///     - production:   "https://www.smartflowsheet.com/api/v3"
         /// </summary>
-        public static string serverUrl = "https://sfs-public.azurewebsites.net/api/v3";
+        public static string serverUrl = "https://sandbox.smartflowsheet.com/api/v3";
 
         /// <summary>
         /// Each EMR has special developer key received from Smart Flow Sheet support
