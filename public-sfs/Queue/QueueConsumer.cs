@@ -3,16 +3,13 @@ using smartflowsheet.api.model.objects;
 using smartflowsheet.queue.api.model.consumers;
 using smartflowsheet.queue.api.model.messages;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace public_sfs
 {
     public class QueueConsumer : BaseQueueConsumer<EmrEventMessage>
     {
-        public override void ProcessMessage(EmrEventMessage message)
+        public override async Task ProcessMessage(EmrEventMessage message)
         {
             Console.WriteLine("\r\nMessage Received");
             Console.WriteLine("Clinic API Key:" + message.ClinicApiKey);
@@ -67,33 +64,32 @@ namespace public_sfs
 
                 default:
                     throw new ApplicationException("Unsuppoted event type");
-                    break;
             }
         }
 
         private void processNote(Note n)
         {
-            Console.WriteLine(String.Format("Note: Id - {0}, Text - {1}, Status - {2}", n.NoteID.ToString(), n.Text, n.NoteStatus));
+            Console.WriteLine($"Note: Id - {n.NoteID.ToString()}, Text - {n.Text}, Status - {n.NoteStatus}");
         }
 
         private void processTreatment(Treatment t)
         {
-            Console.WriteLine(String.Format("Treatment: ParameterName - {0}, ParameterTypeName - {1}, Value - {2}", t.ParameterName, t.ParameterTypeName, t.Value));
+            Console.WriteLine($"Treatment: ParameterName - {t.ParameterName}, ParameterTypeName - {t.ParameterTypeName}, Value - {t.Value}");
         }
 
         private void processHospitalization(Hospitalization h)
         {
-            Console.WriteLine(String.Format("Hospitalization: Patient.Name - {0}", h.patient.name));
+            Console.WriteLine($"Hospitalization: Patient.Name - {h.patient.name}");
         }
 
         private void processMedic(Medic m)
         {
-            Console.WriteLine(String.Format("Medic.Name - {0}", m.Name));
+            Console.WriteLine($"Medic.Name - {m.Name}");
         }
 
         private void processInventoryItem(InventoryItem ii)
         {
-            Console.WriteLine(String.Format("InventoryItem.Name - {0}", ii.Name));
+            Console.WriteLine($"InventoryItem.Name - {ii.Name}");
         }
     }
 }

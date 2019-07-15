@@ -1,10 +1,5 @@
-﻿using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 
 namespace public_sfs
 {
@@ -15,21 +10,16 @@ namespace public_sfs
         public static QueueClient Client;
         public static QueueClient DeadLetterClient;
 
+        public static IMessageReceiver Receiver { get; private set; }
+
+        public static IMessageReceiver DeadLetterReceiver { get; private set; }
+
         public static void Initialize(string connectionString, string queueName)
         {
-            NamespaceManager nsManager = NamespaceManager.CreateFromConnectionString(connectionString);
-            MessagingFactory factory = MessagingFactory.CreateFromConnectionString(connectionString);
+            Receiver = new MessageReceiver(connectionString, queueName);
 
-            QueueDescription queue_description = new QueueDescription(queueName);
-            queue_description.DefaultMessageTimeToLive = new TimeSpan(0, 0, 10);
-            queue_description.EnableDeadLetteringOnMessageExpiration = true;
-            queue_description.MaxDeliveryCount = 4;
-
-            Client = factory.CreateQueueClient(queueName);
-            Client.RetryPolicy = RetryExponential.Default;
-
-            var dfQueue = QueueClient.FormatDeadLetterPath(Client.Path);
-            DeadLetterClient = factory.CreateQueueClient(dfQueue);
+            string deadLetterQueue = EntityNameHelper.FormatDeadLetterPath(Receiver.Path);
+            DeadLetterReceiver = new MessageReceiver(connectionString, deadLetterQueue);
         }
     }
 }

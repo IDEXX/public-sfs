@@ -330,16 +330,16 @@ namespace public_sfs
             Console.ReadKey();
         }
 
-        public static void GetEventsFromServiceBus()
+        public static async Task GetEventsFromServiceBus()
         {
-            Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
             {
-                Queue.BeginProcessingMessages(sbConnectionString, sbQueueName);
+                Queue.StartProcessingMessages(sbConnectionString, sbQueueName);
             });
 
             // NOTE: Thread.Sleep used only for demo purposes
-            Thread.Sleep(TimeSpan.FromSeconds(100));
-            Queue.EndProcessingMessages();
+            await Task.Delay(TimeSpan.FromSeconds(100));
+            await Queue.EndProcessingMessages();
 
             Console.WriteLine("\n\nPress any key to continue...");
             Console.ReadKey();
