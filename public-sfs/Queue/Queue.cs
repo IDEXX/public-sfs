@@ -27,17 +27,17 @@ namespace public_sfs
 
             Console.WriteLine("Start processing messages");
 
-            QueueConnector.Client.RegisterMessageHandler(ProcessMessageAsync, Options);
+            QueueConnector.Receiver.RegisterMessageHandler(ProcessMessageAsync, Options);
 
-            QueueConnector.Client.RegisterMessageHandler(ProcessDeadLetterMessageAsync, DeadLetterOptions);
+            QueueConnector.DeadLetterReceiver.RegisterMessageHandler(ProcessDeadLetterMessageAsync, DeadLetterOptions);
         }
 
         public static async Task EndProcessingMessages()
         {
             Console.WriteLine("End processing of messages");
 
-            await QueueConnector.Client.CloseAsync();
-            await QueueConnector.DeadLetterClient.CloseAsync();
+            await QueueConnector.Receiver.CloseAsync();
+            await QueueConnector.DeadLetterReceiver.CloseAsync();
         }
 
         private static async Task ProcessMessageAsync(Message message, CancellationToken token)

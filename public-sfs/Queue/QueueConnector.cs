@@ -5,11 +5,7 @@ namespace public_sfs
 {
     public static class QueueConnector
     {
-        // Thread-safe. Recommended that you cache rather than recreating it
-        // on every request.
-        public static QueueClient Client;
-        public static QueueClient DeadLetterClient;
-
+        // Thread-safe. Recommended that you cache rather than recreating it on every request.
         public static IMessageReceiver Receiver { get; private set; }
 
         public static IMessageReceiver DeadLetterReceiver { get; private set; }

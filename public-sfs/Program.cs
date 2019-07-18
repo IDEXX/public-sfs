@@ -45,7 +45,7 @@ namespace public_sfs
         public static string sbQueueName = clinicApiKey;
 
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             // Build HTTP headers with auth info
             HttpClient httpClient = new HttpClient();
@@ -92,7 +92,7 @@ namespace public_sfs
             // GetAnesthetics(httpClient, "someExternalId");
 
             // Sample 10. Get EMR events from Azure Service Bus
-            // GetEventsFromServiceBus();
+            await GetEventsFromServiceBus();
         }
 
         public static void CreateInventoryItem(HttpClient httpClient, string emrInventoryItemId)
